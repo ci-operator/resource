@@ -1,0 +1,8 @@
+---
+resource_child:
+  DeploymentConfig:
+    ReplicationController
+  Deployment:
+    ReplicaSet
+  CronJob:
+    Job

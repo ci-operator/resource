@@ -1,0 +1,41 @@
+---
+### Replace k8s resource differently depending on type
+# Triggers replacements for dependencies declared in metadata.labels.dependencies
+#
+# Requires: resource (dict)
+# Requires: oc_project (string)
+- name: Check if resource exists by name
+  command: oc get {{ resource.kind }} {{ resource.metadata.name }} -o json
+  changed_when: false
+  ignore_errors: true
+  failed_when: (app_by_name_resource.rc != 0) and 
+                (app_by_name_resource.stderr is not search('not found'))
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ resource.metadata.name }}"
+  register: app_by_name_resource
+
+- name: Check if resource exists by label
+  command: oc get {{ resource.kind }} --selector={{ item }} -o json
+  changed_when: false
+  when: resource.metadata.labels['app-component'] is defined
+  with_items: # <- Display Only
+    - "app-component={{ resource.metadata.labels['app-component'] }}"
+  register: app_by_label_resources
+
+- name: Resources found with label selector
+  debug:
+    msg: "{{ (app_by_label_resources.results[0].stdout|from_yaml)['items']|length }}"
+  when: app_by_label_resources is not skipped
+
+- name: Include resource tasks
+  include_tasks: "resource-{{ app_spec_task[action][resource.kind] }}.yml"
+  vars:
+    action: "{{ app_name_exists|ternary('update',
+                app_spec_labeled|ternary('rename', 'present') ) }}"
+    app_labeled_resources: "{{ app_by_label_resources.results is defined|ternary((app_by_label_resources.results[0].stdout|from_yaml)['items'], []) }}"
+    app_named_resource: "{{ app_by_name_resource.results[0].stdout|from_yaml }}"
+    app_name_exists: "{{ app_by_name_resource.results[0].rc == 0 }}"
+    app_spec_labeled: "{{ app_labeled_resources|length != 0 }}"
+    app_spec_renamed: "{{ (not app_name_exists) and app_spec_labeled }}"
+    app_existing_resource: "{{ app_name_exists|ternary(app_named_resource, 
+                               app_spec_labeled|ternary(app_labeled_resources[0], {}) ) }}"

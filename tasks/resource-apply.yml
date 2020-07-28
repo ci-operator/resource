@@ -1,0 +1,5 @@
+---
+- name: Resource applied
+  command: oc apply -f {{ specfile }}
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ resource.metadata.name }}"

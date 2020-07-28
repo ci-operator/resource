@@ -1,0 +1,15 @@
+namespace: ci-operator
+name: resource
+version: 0.0.1
+readme: README.md
+authors:
+  - josiah@redhat.com
+description: Openshift resource rescheduler
+issues: https://github.com/ci-operator/resource/issues
+repository:
+  https://github.com/ci-operator/resource.git
+build_ignore: 
+  - build
+  - install
+  - '*.tar.gz'
+  - '*~'

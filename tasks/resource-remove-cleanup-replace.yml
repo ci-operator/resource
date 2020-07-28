@@ -1,0 +1,29 @@
+---
+- name: Resource children found prior to being removed
+  command: oc get {{ resource_child[resource.kind] }} --selector={{ item }} -o name
+  with_items: # <- Display Only
+    - "app-component={{ resource.kind|lower }}.{{ app_existing_resource.metadata.name }}"
+  register: resource_children
+
+- name: TODO - Remove children found
+  debug: var=resource_children.results[0].stdout
+
+- name: Resource removed
+  k8s:
+    state: absent
+    namespace: "{{ oc_project }}"
+    kind: "{{ resource.kind }}"
+    name: "{{ (app_existing_resource|from_yaml).metadata.name }}"
+    validate_certs: false  # <-- FixMe
+  register: resource_removal
+  async: 180
+  poll: 0
+  vars:
+    ansible_async_dir: /.ansible/async-remove-{{ item|regex_replace('/','-') }}
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ (app_existing_resource|from_yaml).metadata.name }}"
+  notify: Wait for resource removal
+
+- name: Storing removed resource name
+  set_fact:
+    removed_resource: "{{ resource.kind }}/{{ (app_existing_resource|from_yaml).metadata.name }}"

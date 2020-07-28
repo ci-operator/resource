@@ -1,0 +1,55 @@
+---
+# resource-present-eventually
+- name: Wait for resource to be present
+  async_status:
+    jid: '{{ resource_present.results[0].ansible_job_id }}'
+  register: present_result
+  until: present_result.finished and (present_result.status|default(0) != 404)
+  retries: 24
+  delay: 10
+  changed_when: true
+  notify: Resource replaced
+  vars:
+    ansible_async_dir: /ansible/.ansible/async-present-{{ item|regex_replace('/','-') }}
+  with_items: # <- Display Only
+    - "{{ present_resource }}"
+
+
+# resource-remove-replace
+- name: Wait for resource removal
+  async_status:
+    jid: '{{ resource_removal.results[0].ansible_job_id }}'
+  register: removal_result
+  until: removal_result.finished
+  retries: 20
+  delay: 6
+  changed_when: true
+  notify: Resource replaced
+  vars:
+    ansible_async_dir: /ansible/.ansible/async-remove-{{ item|regex_replace('/','-') }}
+  with_items: # <- Display Only
+    - "{{ removed_resource }}"
+
+- name: Resource replaced
+  k8s:
+    state: present
+    namespace: "{{ oc_project }}"
+    definition: "{{ resource }}"
+    validate_certs: false  # <-- FixMe
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ resource.metadata.name }}"
+  notify: Backup renamed specfile
+
+- name: Backup renamed specfile
+  when: (resource.kind +'/'+ resource.metadata.name) is not match(removed_resource)
+  command: mv -b {{ (specfile|dirname) }}{{ inventory_hostname}}.{{ k8s_env }}.{{ (removed_resource) }}.yml {{ (specfile|dirname) }}{{ inventory_hostname}}.{{ k8s_env }}.{{ (removed_resource) }}.yml.old
+  register: resource_old_name
+  notify: Resource backup output
+
+# resource-rollout
+- name: Follow rollout status 
+  command: oc rollout status dc {{ resource.metadata.name }}
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ resource.metadata.name }}"
+  register: app_rollout_status
+

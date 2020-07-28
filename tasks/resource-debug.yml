@@ -1,0 +1,8 @@
+---
+- debug: var=resource
+- debug: var=specfile
+- debug: var=resource_path
+- debug: var=app_name_exists
+- debug: var=app_spec_labeled
+- debug: var=app_spec_renamed
+- debug: var=app_existing_resource.metadata.name

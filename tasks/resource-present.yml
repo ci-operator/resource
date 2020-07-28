@@ -1,0 +1,15 @@
+---
+- name: Resource present
+  connection: local
+  k8s:
+    state: present
+    namespace: "{{ oc_project }}"
+    definition: "{{ resource }}"
+    validate_certs: false  # <-- FixMe
+  register: spec_present
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ resource.metadata.name }}"
+
+#FIXME: retry on 404 not found for RoleBinding before Role is made
+# failed: [ocp.rpv5-dev.RoleBinding.rpv5-dev-rabbitmq-endpoint-reader] (item=RoleBinding/rpv5-dev-rabbitmq-endpoint-reader) => {"ansible_loop_var": "item", "changed": false, "error": 404, "item": "RoleBinding/rpv5-dev-rabbitmq-endpoint-reader", "msg": "Failed to create object: b'{\"kind\":\"Status\",\"apiVersion\":\"v1\",\"metadata\":{},\"status\":\"Failure\",\"message\":\"roles.rbac.authorization.k8s.io \\\\\"rpv5-dev-rabbitmq-endpoint-reader\\\\\" not found\",\"reason\":\"NotFound\",\"details\":{\"name\":\"rpv5-dev-rabbitmq-endpoint-reader\",\"group\":\"rbac.authorization.k8s.io\",\"kind\":\"roles\"},\"code\":404}\\n'", "reason": "Not Found", "status": 404}
+

@@ -1,0 +1,5 @@
+---
+- name: Resource replaced
+  command: oc replace -f {{ specfile }}
+  with_items: # <- Display Only
+    - "{{ resource.kind }}/{{ resource.metadata.name }}"

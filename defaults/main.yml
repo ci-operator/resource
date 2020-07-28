@@ -1,0 +1,56 @@
+app_skip_pvcs: true
+
+app_spec_task:
+  update:
+    Secret: apply
+    ConfigMap: apply
+    ServiceAccount: replace
+    Role: replace
+    RoleBinding: replace
+    ServiceMonitor: replace
+    PodDisruptionBudget: replace
+    ImageStream: replace
+    Service: remove-replace
+    Route: replace
+    Job: remove-replace
+    CronJob: replace
+    StatefulSet: replace
+    Deployment: apply
+    DeploymentConfig: rollout
+    PersistentVolumeClaim: "{{ app_skip_pvcs|ternary('skip','migrate') }}"
+
+  rename:
+    Secret: remove-replace
+    ConfigMap: remove-replace
+    ServiceAccount: remove-replace
+    Role: remove-replace
+    RoleBinding: remove-replace
+    ServiceMonitor: remove-replace
+    PodDisruptionBudget: remove-replace
+    ImageStream: remove-replace
+    Service: remove-replace
+    Route: remove-replace
+    Job: remove-replace
+    CronJob: remove-replace
+    StatefulSet: remove-replace
+    Deployment: remove-cleanup-replace
+    DeploymentConfig: remove-cleanup-replace
+    PersistentVolumeClaim: "{{ app_skip_pvcs|ternary('skip','migrate') }}"
+
+  present:
+    Secret: present
+    ConfigMap: present
+    ServiceAccount: present
+    Role: present
+    RoleBinding: present-eventually
+    ServiceMonitor: present
+    PodDisruptionBudget: present
+    ImageStream: present
+    Service: present
+    Route: present
+    Job: present
+    CronJob: present
+    StatefulSet: present
+    Deployment: present
+    DeploymentConfig: present
+    PersistentVolumeClaim: present
