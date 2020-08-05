@@ -5,8 +5,8 @@
     jid: '{{ resource_present.results[0].ansible_job_id }}'
   register: present_result
   until: present_result.finished and (present_result.status|default(0) != 404)
-  retries: 24
-  delay: 10
+  retries: 6
+  delay: 30
   changed_when: true
   notify: Resource replaced
   vars:
@@ -52,4 +52,3 @@
   with_items: # <- Display Only
     - "{{ resource.kind }}/{{ resource.metadata.name }}"
   register: app_rollout_status
-

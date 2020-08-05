@@ -1,5 +1,5 @@
 ---
-- name: Resource present
+- name: Resource present eventually
   k8s:
     state: present
     namespace: "{{ oc_project }}"
@@ -7,7 +7,7 @@
     validate_certs: false  # <-- FixMe
   register: resource_present
   until: resource_present is success or resource_present.status|default(0) != 404
-  delay: 10
+  delay: 30
   retries: 6
   async: 120
   poll: 0
@@ -17,22 +17,6 @@
     - "{{ resource.kind }}/{{ resource.metadata.name }}"
   notify: Wait for resource to be present
 
-- name: Storing awaited resource name
+- name: Storing handled resource name
   set_fact:
     present_resource: "{{ resource.kind }}/{{ resource.metadata.name }}"
-
-
-
-# - name: Resource present
-#   connection: local
-#   k8s:
-#     state: present
-#     namespace: "{{ oc_project }}"
-#     definition: "{{ resource }}"
-#     validate_certs: false  # <-- FixMe
-#   register: spec_present
-#   with_items: # <- Display Only
-#     - "{{ resource.kind }}/{{ resource.metadata.name }}"
-#   until: spec_present is success and spec_present.status|default(0) != 404
-#   retries: 6
-#   delay: 5
