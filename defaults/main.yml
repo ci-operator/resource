@@ -14,7 +14,7 @@ app_spec_task:
     Route: replace
     Job: remove-replace
     CronJob: replace
-    StatefulSet: replace
+    StatefulSet: remove-replace
     Deployment: apply
     DeploymentConfig: rollout
     PersistentVolumeClaim: "{{ app_skip_pvcs|ternary('skip','migrate') }}"
